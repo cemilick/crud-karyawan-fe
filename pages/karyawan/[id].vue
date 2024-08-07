@@ -108,6 +108,7 @@
             <div class="flex justify-between align-middle mt-5">
                 <div>   
                     <button
+                        v-if="!this.create_action"
                         class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                         @click="deleteKaryawan"
                     >
@@ -157,15 +158,18 @@ export default {
             },
             jobs: {},
             divisions: {},
+            create_action: this.$route.params.id == 'create',
         };
     },
     mounted() {
-        this.fetchKaryawanData();
+        if (this.create_action) {
+            this.fetchKaryawanData();
+        }
         this.fetchOptions();
     },
     methods: {
         fetchKaryawanData() {
-            axios.get('/api/karyawan/' + this.$route.params.id)
+            axios.get('/api/karyawan/' + this.create_action ? '' : this.$route.params.id)
                 .then(response => {
                     this.karyawan = {
                         name: response.data.data.name,

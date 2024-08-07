@@ -4,9 +4,9 @@
         <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
         <div class="mb-4">
             <h2 class="text-lg font-bold mb-2">Filter berdasarkan Divisi</h2>
-            <select v-model="selectedDivision" class="p-2 border border-gray-300 rounded">
+            <select v-model="selectedDivision" class="p-2 border border-gray-300 rounded" @change="handleChangeDivision">
                 <option value="">Semua Divisi</option>
-                <option v-for="division in divisions" :key="division.id" :value="division.id">{{ division.name }}</option>
+                <option v-for="division in divisions" :key="division.id" :value="division.id">{{ division.division_name }}</option>
             </select>
         </div>
         <div class="flex justify-between mb-4">
@@ -28,7 +28,7 @@
         <div>
             <h2 class="text-lg font-bold mb-2">Daftar Karyawan</h2>
             <ul>
-                <li v-for="karyawan in filteredKaryawan" :key="karyawan.id">{{ karyawan.name }}</li>
+                <li v-for="karyawan in karyawans" :key="karyawan.id">{{ karyawan.name }}</li>
             </ul>
         </div>
     </div>
@@ -36,6 +36,7 @@
 </template>
 
 <script>
+import axios from '~/utils/axios.tsx';
 import BaseLayout from '~/components/layout/BaseLayout.vue';
 export default {
   components: { BaseLayout },
@@ -45,32 +46,40 @@ export default {
             totalActiveKaryawan: 0,
             totalInactiveKaryawan: 0,
             selectedDivision: '',
-            divisions: [
-                { id: 1, name: 'Division 1' },
-                { id: 2, name: 'Division 2' },
-                { id: 3, name: 'Division 3' },
-            ],
-            karyawan: [
-                { id: 1, name: 'John Doe', status: 'active', divisionId: 1 },
-                { id: 2, name: 'Jane Smith', status: 'inactive', divisionId: 2 },
-                { id: 3, name: 'Bob Johnson', status: 'active', divisionId: 1 },
-                // Add more karyawan data here
-            ],
+            divisions: [],
+            karyawans: [],
         };
     },
-    computed: {
-        filteredKaryawan() {
-            if (this.selectedDivision) {
-                return this.karyawan.filter(karyawan => karyawan.divisionId === this.selectedDivision);
-            } else {
-                return this.karyawan;
-            }
-        },
+    mounted() {
+        this.fetchDataDashboard();
+        this.fetchDivision();
     },
-    created() {
-        this.totalKaryawan = this.karyawan.length;
-        this.totalActiveKaryawan = this.karyawan.filter(karyawan => karyawan.status === 'active').length;
-        this.totalInactiveKaryawan = this.karyawan.filter(karyawan => karyawan.status === 'inactive').length;
+    methods: {
+        fetchDataDashboard() {
+            axios.get('/api/karyawan/statistics?division=' + this.selectedDivision)
+                .then(response => {
+                    const data = response.data.data;
+                    this.totalKaryawan = data.total_karyawan;
+                    this.totalActiveKaryawan = data.total_karyawan_active;
+                    this.totalInactiveKaryawan = data.total_karyawan_non_active;
+                    this.karyawans = data.data;
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        },
+        fetchDivision() {
+            axios.get('/api/division')
+                .then(response => {
+                    this.divisions = response.data.data;
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        },
+        handleChangeDivision() {
+            this.fetchDataDashboard();
+        }
     },
 };
 </script>

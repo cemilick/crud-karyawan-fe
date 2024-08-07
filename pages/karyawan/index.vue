@@ -1,6 +1,50 @@
 <template>
     <base-layout>
+    <h1 class="text-2xl font-bold mb-4">Data Karyawan</h1>
         <div class="p-4">
+            <div class="flex justify-between gap-10 mb-4">
+                <div class="w-1/3">
+                    <input
+                        type="text"
+                        class="w-full border border-gray-300 rounded py-2 px-4"
+                        placeholder="Filter by Name"
+                        v-model="nameFilter"
+                        @input="applyFilters"
+                    />
+                </div>
+                <div class="w-1/4">
+                    <select
+                        class="w-full border border-gray-300 rounded py-2 px-4"
+                        v-model="jobFilter"
+                        @change="applyFilters"
+                    >
+                        <option value="">Filter by Job</option>
+                        <option v-for="job in jobs" :key="job.id" :value="job.id">
+                            {{ job.job_name }}
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="w-1/4">
+                    <select
+                        class="w-full border border-gray-300 rounded py-2 px-4"
+                        v-model="divisionFilter"
+                        @change="applyFilters"
+                    >
+                        <option value="">Filter by Division</option>
+                        <option v-for="division in divisions" :key="division.id" :value="division.id">
+                            {{ division.division_name }}
+                        </option>
+                    </select>
+                </div>
+                <div>
+                    <button class="bg-green-500 hover:bg-green-700 text-white text-right font-bold py-2 px-4 rounded mr-2"
+                    @click="createKaryawan"
+                    >
+                        Buat Baru
+                    </button>
+                </div>
+            </div>
             <table class="min-w-full bg-white border border-gray-200">
                 <thead>
                     <tr>
@@ -71,19 +115,21 @@ export default {
             employees: [],
             currentPage: 1,
             totalPages: 0,
+            divisionFilter: '',
+            jobFilter: '',
+            nameFilter: '',
+            divisions: [],
+            jobs: [],
         };
     },
     mounted() {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            this.$router.push('/login'); // Replace '/login' with your login page route
-        } else {
-            this.fetchEmployees();
-        }
+        this.fetchEmployees();
+        this.fetchDivision();
+        this.fetchJob();
     },
     methods: {
         fetchEmployees() {
-            axios.get('/api/karyawan?page=' + this.currentPage)
+            axios.get('/api/karyawan?page=' + this.currentPage + '&division_id=' + this.divisionFilter + '&job_id=' + this.jobFilter + '&name=' + this.nameFilter)
                 .then(response => {
                     const data = response.data.data;
                     this.employees = data.data;
@@ -107,8 +153,33 @@ export default {
             this.fetchEmployees();
         },
         viewDetail(id) {
-            this.$router.push('/karyawan/' + id); // Replace '/karyawan/' with your detail page route
+            this.$router.push('/karyawan/' + id);
         },
+        applyFilters() {
+            this.currentPage = 1;
+            this.fetchEmployees();
+        },
+        createKaryawan() {
+            this.$router.push('/karyawan/create');
+        },
+        fetchDivision() {
+            axios.get('/api/division')
+                .then(response => {
+                    this.divisions = response.data.data;
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        },
+        fetchJob() {
+            axios.get('/api/job')
+                .then(response => {
+                    this.jobs = response.data.data;
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
     },
 };
            
