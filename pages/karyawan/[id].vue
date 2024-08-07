@@ -1,7 +1,7 @@
 <template>
-    <base-layout>
+    <base-layout :loading="this.is_loading">
     <div class="container mx-auto">
-        <h1 class="text-2xl font-bold mb-4">Karyawan Detail</h1>
+        <h1 class="text-2xl font-bold mb-4">Karyawan - {{this.create_action ? 'Buat Baru' : 'Detail'}}</h1>
         <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="nama">
@@ -137,13 +137,12 @@
 </template>
 
 <script>
-import InputText from '~/components/InputText.vue';
 import BaseLayout from '~/components/layout/BaseLayout.vue';
 import axios from '~/utils/axios.tsx';
 import Swal from 'sweetalert2';
 
 export default {
-  components: { BaseLayout, InputText },
+  components: { BaseLayout },
     data() {
         return {
             karyawan: {
@@ -159,17 +158,18 @@ export default {
             jobs: {},
             divisions: {},
             create_action: this.$route.params.id == 'create',
+            is_loading: false
         };
     },
     mounted() {
-        if (this.create_action) {
+        if (!this.create_action) {
             this.fetchKaryawanData();
         }
         this.fetchOptions();
     },
     methods: {
         fetchKaryawanData() {
-            axios.get('/api/karyawan/' + this.create_action ? '' : this.$route.params.id)
+            axios.get('/api/karyawan/' + (this.create_action ? '' : this.$route.params.id))
                 .then(response => {
                     this.karyawan = {
                         name: response.data.data.name,
@@ -202,9 +202,11 @@ export default {
                 });
         },
         saveKaryawan() {
+            this.is_loading = true;
             axios.post('/api/karyawan/' + this.$route.params.id, this.karyawan)
                 .then(response => {
                     // Handle success
+                    this.is_loading = false;
                     Swal.fire({
                         icon: 'success',
                         title: 'Success',
@@ -214,6 +216,7 @@ export default {
                     });
                 })
                 .catch(error => {
+                    this.is_loading = false;
                     // Handle error
                     Swal.fire({
                         icon: 'error',
@@ -222,7 +225,7 @@ export default {
                     });
                 });
         },
-        deleteKaryawan() {
+        deleteKaryawan: async() => {
             Swal.fire({
                 title: 'Yakin Hapus Data?',
                 text: 'Data karyawan akan dihapus',
@@ -230,9 +233,10 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: 'Ya, hapus karyawan!',
                 cancelButtonText: 'Batal',
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.value) {
-                    axios.delete('/api/karyawan/' + this.$route.params.id)
+                    this.is_loading = true;
+                    await axios.delete('/api/karyawan/' + this.$route.params.id)
                         .then(response => {
                             // Handle success
                             Swal.fire({
@@ -240,6 +244,7 @@ export default {
                                 title: 'Success',
                                 text: 'Data karyawan berhasil dihapus',
                             }).then(() => {
+                                this.is_loading = false;
                                 this.$router.push({ name: 'karyawan' });
                             });
                         })

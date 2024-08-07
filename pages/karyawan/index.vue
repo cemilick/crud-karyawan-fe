@@ -1,9 +1,9 @@
 <template>
-    <base-layout>
+    <base-layout :loading="this.is_loading">
     <h1 class="text-2xl font-bold mb-4">Data Karyawan</h1>
         <div class="p-4">
-            <div class="flex justify-between gap-10 mb-4">
-                <div class="w-1/3">
+            <div class="flex justify-center gap-5 mb-4">
+                <div>
                     <input
                         type="text"
                         class="w-full border border-gray-300 rounded py-2 px-4"
@@ -12,7 +12,7 @@
                         @input="applyFilters"
                     />
                 </div>
-                <div class="w-1/4">
+                <div>
                     <select
                         class="w-full border border-gray-300 rounded py-2 px-4"
                         v-model="jobFilter"
@@ -23,9 +23,8 @@
                             {{ job.job_name }}
                         </option>
                     </select>
-                </div>
-                
-                <div class="w-1/4">
+                </div>   
+                <div>
                     <select
                         class="w-full border border-gray-300 rounded py-2 px-4"
                         v-model="divisionFilter"
@@ -38,7 +37,7 @@
                     </select>
                 </div>
                 <div>
-                    <button class="bg-green-500 hover:bg-green-700 text-white text-right font-bold py-2 px-4 rounded mr-2"
+                    <button class="bg-green-500 hover:bg-green-700 text-white text-center font-bold py-2 px-4 rounded"
                     @click="createKaryawan"
                     >
                         Buat Baru
@@ -120,6 +119,7 @@ export default {
             nameFilter: '',
             divisions: [],
             jobs: [],
+            is_loading: false,
         };
     },
     mounted() {
@@ -129,14 +129,17 @@ export default {
     },
     methods: {
         fetchEmployees() {
+            this.is_loading = true;
             axios.get('/api/karyawan?page=' + this.currentPage + '&division_id=' + this.divisionFilter + '&job_id=' + this.jobFilter + '&name=' + this.nameFilter)
                 .then(response => {
+                    this.is_loading = false;
                     const data = response.data.data;
                     this.employees = data.data;
                     this.currentPage = data.current_page;
                     this.totalPages = data.last_page;
                 })
                 .catch(error => {
+                    this.is_loading = false;
                     console.error(error);
                 });
         },

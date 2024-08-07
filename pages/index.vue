@@ -1,5 +1,5 @@
 <template>
-    <base-layout>
+    <base-layout :loading="this.is_loading">
     <div class="container mx-auto">
         <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
         <div class="mb-4">
@@ -48,6 +48,7 @@ export default {
             selectedDivision: '',
             divisions: [],
             karyawans: [],
+            is_loading: false,
         };
     },
     mounted() {
@@ -56,8 +57,10 @@ export default {
     },
     methods: {
         fetchDataDashboard() {
+            this.is_loading = true;
             axios.get('/api/karyawan/statistics?division=' + this.selectedDivision)
                 .then(response => {
+                    this.is_loading = false;
                     const data = response.data.data;
                     this.totalKaryawan = data.total_karyawan;
                     this.totalActiveKaryawan = data.total_karyawan_active;
@@ -65,6 +68,7 @@ export default {
                     this.karyawans = data.data;
                 })
                 .catch(error => {
+                    this.is_loading = false;
                     console.error(error);
                 });
         },
