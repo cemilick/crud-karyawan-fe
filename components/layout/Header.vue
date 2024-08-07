@@ -4,9 +4,9 @@
             <h1 class="text-2xl font-bold">My App</h1>
             <nav>
                 <ul class="flex space-x-4">
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#">About</a></li>
-                    <li><a href="#">Contact</a></li>
+                    <li><nuxt-link to="/">Dashboard</nuxt-link></li>
+                    <li><nuxt-link to="/karyawan">Data Karyawan</nuxt-link></li>
+                    <li><button @click="logout">Logout</button></li>
                 </ul>
             </nav>
         </div>
@@ -14,8 +14,21 @@
 </template>
 
 <script>
+import axios from '~/utils/axios.tsx';
 export default {
     name: 'Header',
+    methods: {
+        logout() {
+            axios.post('/api/auth/logout')
+                .then(() => {
+                    localStorage.removeItem('token');
+                    this.$router.push('/login');
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
+    }
 }
 </script>
 
